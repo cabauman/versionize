@@ -36,8 +36,8 @@ public class Program
             var cwd = optionWorkingDirectory.Value() ?? Directory.GetCurrentDirectory();
             var jsonFileConfig = FromJsonFile(Path.Join(cwd, ".versionize"));
 
-                // TODO: Silent option is missing in the config file
-                var options = MergeWithOptions(jsonFileConfig, new VersionizeOptions
+            // TODO: Silent option is missing in the config file
+            var options = MergeWithOptions(jsonFileConfig, new VersionizeOptions
             {
                 DryRun = optionDryRun.HasValue(),
                 SkipDirty = optionSkipDirty.HasValue(),

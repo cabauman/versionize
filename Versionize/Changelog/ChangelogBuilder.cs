@@ -115,7 +115,7 @@ public class ChangelogBuilder
 
         if (!string.IsNullOrWhiteSpace(commitLink))
         {
-            sb.Append($" ([{commit.Sha.Substring(0, 7)}]({commitLink}))");
+            sb.Append($" ([{commit.Sha[..7]}]({commitLink}))");
         }
 
         return sb.ToString();

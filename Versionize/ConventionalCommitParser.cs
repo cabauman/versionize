@@ -7,7 +7,7 @@ public static class ConventionalCommitParser
 {
     private static readonly string[] NoteKeywords = new string[] { "BREAKING CHANGE" };
 
-    private static readonly Regex HeaderPattern = new Regex("^(?<type>\\w*)(?:\\((?<scope>.*)\\))?: (?<subject>.*)$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+    private static readonly Regex HeaderPattern = new("^(?<type>\\w*)(?:\\((?<scope>.*)\\))?: (?<subject>.*)$", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
 
     public static List<ConventionalCommit> Parse(List<Commit> commits)
     {
@@ -59,7 +59,7 @@ public static class ConventionalCommitParser
                     conventionalCommit.Notes.Add(new ConventionalCommitNote
                     {
                         Title = noteKeyword,
-                        Text = line.Substring($"{noteKeyword}:".Length).TrimStart()
+                        Text = line[$"{noteKeyword}:".Length..].TrimStart()
                     });
                 }
             }

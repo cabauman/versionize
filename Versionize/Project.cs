@@ -36,7 +36,7 @@ public class Project
 
     private static Version ReadVersion(string projectFile)
     {
-        XmlDocument doc = new XmlDocument { PreserveWhitespace = true };
+        XmlDocument doc = new() { PreserveWhitespace = true };
 
         try
         {

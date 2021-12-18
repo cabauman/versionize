@@ -24,8 +24,8 @@ public static class CommandLineUI
     {
         var messageFormatters = new Formatter[]
         {
-                new Formatter("√", Color.Green),
-                new Formatter(message, Color.LightGray),
+            new Formatter("√", Color.Green),
+            new Formatter(message, Color.LightGray),
         };
 
         Platform.WriteLineFormatted("{0} {1}", Color.White, messageFormatters);
