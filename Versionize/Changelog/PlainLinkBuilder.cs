@@ -1,17 +1,16 @@
-using Version = NuGet.Versioning.SemanticVersion;
+﻿using Version = NuGet.Versioning.SemanticVersion;
 
-namespace Versionize.Changelog
+namespace Versionize.Changelog;
+
+public class PlainLinkBuilder : IChangelogLinkBuilder
 {
-    public class PlainLinkBuilder : IChangelogLinkBuilder
+    public string BuildCommitLink(ConventionalCommit commit)
     {
-        public string BuildCommitLink(ConventionalCommit commit)
-        {
-            return string.Empty;
-        }
+        return string.Empty;
+    }
 
-        public string BuildVersionTagLink(Version version)
-        {
-            return string.Empty;
-        }
+    public string BuildVersionTagLink(Version version)
+    {
+        return string.Empty;
     }
 }

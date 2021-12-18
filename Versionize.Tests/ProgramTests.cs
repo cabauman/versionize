@@ -3,52 +3,51 @@ using Versionize.CommandLine;
 using Versionize.Tests.TestSupport;
 using Xunit;
 
-namespace Versionize.Tests
+namespace Versionize.Tests;
+
+public class ProgramTests : IDisposable
 {
-    public class ProgramTests : IDisposable
+    private readonly TestSetup _testSetup;
+
+    public ProgramTests()
     {
-        private readonly TestSetup _testSetup;
+        _testSetup = TestSetup.Create();
+        CommandLineUI.Platform = new TestPlatformAbstractions();
+    }
 
-        public ProgramTests()
-        {
-            _testSetup = TestSetup.Create();
-            CommandLineUI.Platform = new TestPlatformAbstractions();
-        }
+    [Fact]
+    public void ShouldRunVersionizeWithDryRunOption()
+    {
+        var exitCode = Program.Main(new[] { "--dry-run", "--skip-dirty" });
 
-        [Fact]
-        public void ShouldRunVersionizeWithDryRunOption()
-        {
-            var exitCode = Program.Main(new[] { "--dry-run", "--skip-dirty" });
+        Assert.Equal(0, exitCode);
+    }
 
-            Assert.Equal(0, exitCode);
-        }
+    [Fact]
+    public void ShouldVersionizeDesiredReleaseVersion()
+    {
+        var exitCode = Program.Main(new[] { "--dry-run", "--skip-dirty", "--release-as", "2.0.0" });
 
-        [Fact]
-        public void ShouldVersionizeDesiredReleaseVersion()
-        {
-            var exitCode = Program.Main(new[] { "--dry-run", "--skip-dirty", "--release-as", "2.0.0" });
+        Assert.Equal(0, exitCode);
+    }
 
-            Assert.Equal(0, exitCode);
-        }
+    [Fact]
+    public void ShouldReadConfigurationFromConfigFile()
+    {
+        TempCsProject.Create(_testSetup.WorkingDirectory);
 
-        [Fact]
-        public void ShouldReadConfigurationFromConfigFile()
-        {
-            TempCsProject.Create(_testSetup.WorkingDirectory);
+        File.WriteAllText(Path.Join(_testSetup.WorkingDirectory, "hello.txt"), "First commit");
+        File.WriteAllText(Path.Join(_testSetup.WorkingDirectory, ".versionize"), @"{ ""skipDirty"": true }");
 
-            File.WriteAllText(Path.Join(_testSetup.WorkingDirectory, "hello.txt"), "First commit");
-            File.WriteAllText(Path.Join(_testSetup.WorkingDirectory, ".versionize"), @"{ ""skipDirty"": true }");
+        var exitCode = Program.Main(new[] { "-w", _testSetup.WorkingDirectory });
 
-            var exitCode = Program.Main(new[] { "-w", _testSetup.WorkingDirectory });
+        exitCode.ShouldBe(0);
+        File.Exists(Path.Join(_testSetup.WorkingDirectory, "CHANGELOG.md")).ShouldBeTrue();
+        _testSetup.Repository.Commits.Count().ShouldBe(1);
+    }
 
-            exitCode.ShouldBe(0);
-            File.Exists(Path.Join(_testSetup.WorkingDirectory, "CHANGELOG.md")).ShouldBeTrue();
-            _testSetup.Repository.Commits.Count().ShouldBe(1);
-        }
-
-        public void Dispose()
-        {
-            _testSetup.Dispose();
-        }
+    public void Dispose()
+    {
+        _testSetup.Dispose();
     }
 }

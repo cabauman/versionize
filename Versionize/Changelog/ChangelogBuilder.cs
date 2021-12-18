@@ -1,131 +1,130 @@
 ﻿using System.Text;
 using Version = NuGet.Versioning.SemanticVersion;
 
-namespace Versionize.Changelog
-{
-    public class ChangelogBuilder
-    {
-        private const string Preamble = "# Change Log\n\nAll notable changes to this project will be documented in this file. See [versionize](https://github.com/saintedlama/versionize) for commit guidelines.\n";
+namespace Versionize.Changelog;
 
-        private ChangelogBuilder(string file)
+public class ChangelogBuilder
+{
+    private const string Preamble = "# Change Log\n\nAll notable changes to this project will be documented in this file. See [versionize](https://github.com/saintedlama/versionize) for commit guidelines.\n";
+
+    private ChangelogBuilder(string file)
+    {
+        FilePath = file;
+    }
+
+    public string FilePath { get; }
+
+    public void Write(Version version, DateTimeOffset versionTime, IChangelogLinkBuilder linkBuilder, IEnumerable<ConventionalCommit> commits,
+        bool includeAllCommitsInChangelog = false)
+    {
+        var versionTagLink = string.IsNullOrWhiteSpace(linkBuilder.BuildVersionTagLink(version)) ? version.ToString() : $"[{version}]({linkBuilder.BuildVersionTagLink(version)})";
+
+        var markdown = $"<a name=\"{version}\"></a>";
+        markdown += "\n";
+        markdown += $"## {versionTagLink} ({versionTime.Year}-{versionTime.Month}-{versionTime.Day})";
+        markdown += "\n";
+        markdown += "\n";
+
+        var bugFixes = BuildBlock("Bug Fixes", linkBuilder, commits.Where(commit => commit.IsFix));
+
+        if (!string.IsNullOrWhiteSpace(bugFixes))
         {
-            FilePath = file;
+            markdown += bugFixes;
+            markdown += "\n";
         }
 
-        public string FilePath { get; }
+        var features = BuildBlock("Features", linkBuilder, commits.Where(commit => commit.IsFeature));
 
-        public void Write(Version version, DateTimeOffset versionTime, IChangelogLinkBuilder linkBuilder, IEnumerable<ConventionalCommit> commits,
-            bool includeAllCommitsInChangelog = false)
+        if (!string.IsNullOrWhiteSpace(features))
         {
-            var versionTagLink = string.IsNullOrWhiteSpace(linkBuilder.BuildVersionTagLink(version)) ? version.ToString() : $"[{version}]({linkBuilder.BuildVersionTagLink(version)})";
-
-            var markdown = $"<a name=\"{version}\"></a>";
+            markdown += features;
             markdown += "\n";
-            markdown += $"## {versionTagLink} ({versionTime.Year}-{versionTime.Month}-{versionTime.Day})";
-            markdown += "\n";
-            markdown += "\n";
+        }
 
-            var bugFixes = BuildBlock("Bug Fixes", linkBuilder, commits.Where(commit => commit.IsFix));
+        var breaking = BuildBlock("Breaking Changes", linkBuilder, commits.Where(commit => commit.IsBreakingChange));
 
-            if (!string.IsNullOrWhiteSpace(bugFixes))
+        if (!string.IsNullOrWhiteSpace(breaking))
+        {
+            markdown += breaking;
+            markdown += "\n";
+        }
+
+        if (includeAllCommitsInChangelog)
+        {
+            var other = BuildBlock("Other", linkBuilder, commits.Where(commit => !commit.IsFix && !commit.IsFeature && !commit.IsBreakingChange));
+
+            if (!string.IsNullOrWhiteSpace(other))
             {
-                markdown += bugFixes;
+                markdown += other;
                 markdown += "\n";
             }
+        }
 
-            var features = BuildBlock("Features", linkBuilder, commits.Where(commit => commit.IsFeature));
+        if (File.Exists(FilePath))
+        {
+            var contents = File.ReadAllText(FilePath);
 
-            if (!string.IsNullOrWhiteSpace(features))
+            var firstReleaseHeadlineIdx = contents.IndexOf("<a name=\"", StringComparison.Ordinal);
+
+            if (firstReleaseHeadlineIdx >= 0)
             {
-                markdown += features;
-                markdown += "\n";
-            }
-
-            var breaking = BuildBlock("Breaking Changes", linkBuilder, commits.Where(commit => commit.IsBreakingChange));
-
-            if (!string.IsNullOrWhiteSpace(breaking))
-            {
-                markdown += breaking;
-                markdown += "\n";
-            }
-
-            if (includeAllCommitsInChangelog)
-            {
-                var other = BuildBlock("Other", linkBuilder, commits.Where(commit => !commit.IsFix && !commit.IsFeature && !commit.IsBreakingChange));
-
-                if (!string.IsNullOrWhiteSpace(other))
-                {
-                    markdown += other;
-                    markdown += "\n";
-                }
-            }
-
-            if (File.Exists(FilePath))
-            {
-                var contents = File.ReadAllText(FilePath);
-
-                var firstReleaseHeadlineIdx = contents.IndexOf("<a name=\"", StringComparison.Ordinal);
-
-                if (firstReleaseHeadlineIdx >= 0)
-                {
-                    markdown = contents.Insert(firstReleaseHeadlineIdx, markdown);
-                }
-                else
-                {
-                    markdown = contents + "\n\n" + markdown;
-                }
-
-                File.WriteAllText(FilePath, markdown);
+                markdown = contents.Insert(firstReleaseHeadlineIdx, markdown);
             }
             else
             {
-                File.WriteAllText(FilePath, Preamble + "\n" + markdown);
+                markdown = contents + "\n\n" + markdown;
             }
-        }
 
-        public static string BuildBlock(string header, IChangelogLinkBuilder linkBuilder, IEnumerable<ConventionalCommit> commits)
+            File.WriteAllText(FilePath, markdown);
+        }
+        else
         {
-            if (!commits.Any())
-            {
-                return null;
-            }
-
-            var block = $"### {header}";
-            block += "\n";
-            block += "\n";
-
-            return commits
-                .OrderBy(c => c.Scope)
-                .ThenBy(c => c.Subject)
-                .Aggregate(block, (current, commit) => current + BuildCommit(commit, linkBuilder) + "\n");
+            File.WriteAllText(FilePath, Preamble + "\n" + markdown);
         }
+    }
 
-        public static string BuildCommit(ConventionalCommit commit, IChangelogLinkBuilder linkBuilder)
+    public static string BuildBlock(string header, IChangelogLinkBuilder linkBuilder, IEnumerable<ConventionalCommit> commits)
+    {
+        if (!commits.Any())
         {
-            var sb = new StringBuilder("* ");
-
-            if (!string.IsNullOrWhiteSpace(commit.Scope))
-            {
-                sb.Append($"**{commit.Scope}:** ");
-            }
-
-            sb.Append(commit.Subject);
-
-            var commitLink = linkBuilder.BuildCommitLink(commit);
-
-            if (!string.IsNullOrWhiteSpace(commitLink))
-            {
-                sb.Append($" ([{commit.Sha.Substring(0, 7)}]({commitLink}))");
-            }
-
-            return sb.ToString();
+            return null;
         }
 
-        public static ChangelogBuilder CreateForPath(string directory)
+        var block = $"### {header}";
+        block += "\n";
+        block += "\n";
+
+        return commits
+            .OrderBy(c => c.Scope)
+            .ThenBy(c => c.Subject)
+            .Aggregate(block, (current, commit) => current + BuildCommit(commit, linkBuilder) + "\n");
+    }
+
+    public static string BuildCommit(ConventionalCommit commit, IChangelogLinkBuilder linkBuilder)
+    {
+        var sb = new StringBuilder("* ");
+
+        if (!string.IsNullOrWhiteSpace(commit.Scope))
         {
-            var changelogFile = Path.Combine(directory, "CHANGELOG.md");
-
-            return new ChangelogBuilder(changelogFile);
+            sb.Append($"**{commit.Scope}:** ");
         }
+
+        sb.Append(commit.Subject);
+
+        var commitLink = linkBuilder.BuildCommitLink(commit);
+
+        if (!string.IsNullOrWhiteSpace(commitLink))
+        {
+            sb.Append($" ([{commit.Sha.Substring(0, 7)}]({commitLink}))");
+        }
+
+        return sb.ToString();
+    }
+
+    public static ChangelogBuilder CreateForPath(string directory)
+    {
+        var changelogFile = Path.Combine(directory, "CHANGELOG.md");
+
+        return new ChangelogBuilder(changelogFile);
     }
 }
