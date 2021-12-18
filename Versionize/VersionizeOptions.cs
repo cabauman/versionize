@@ -1,5 +1,3 @@
-using System;
-
 namespace Versionize
 {
     public class VersionizeOptions

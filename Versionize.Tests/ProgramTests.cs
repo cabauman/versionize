@@ -1,8 +1,4 @@
-using System;
-using System.IO;
-using System.Linq;
-using LibGit2Sharp;
-using Shouldly;
+﻿using Shouldly;
 using Versionize.CommandLine;
 using Versionize.Tests.TestSupport;
 using Xunit;
