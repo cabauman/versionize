@@ -67,9 +67,9 @@ public class Program
         }
     }
 
-    private static string GetVersion() => typeof(Program).Assembly.GetName().Version.ToString();
+    private static string? GetVersion() => typeof(Program).Assembly.GetName().Version?.ToString();
 
-    private static ConfigurationContract FromJsonFile(string filePath)
+    private static ConfigurationContract? FromJsonFile(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -88,7 +88,7 @@ public class Program
         }
     }
 
-    private static VersionizeOptions MergeWithOptions(ConfigurationContract optionalConfiguration, VersionizeOptions configuration)
+    private static VersionizeOptions MergeWithOptions(ConfigurationContract? optionalConfiguration, VersionizeOptions configuration)
     {
         return new VersionizeOptions
         {

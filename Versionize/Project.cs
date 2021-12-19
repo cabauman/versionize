@@ -78,8 +78,12 @@ public class Project
         }
 
         var versionElement = doc.SelectSingleNode("/Project/PropertyGroup/Version");
-        versionElement.InnerText = nextVersion.ToString();
+        if (versionElement is null)
+        {
+            throw new Exception("Failed to find version node in csproj: {ProjectFile}.");
+        }
 
+        versionElement.InnerText = nextVersion.ToString();
         doc.Save(ProjectFile);
     }
 }

@@ -5,12 +5,12 @@ namespace Versionize;
 
 public static class RespositoryExtensions
 {
-    public static Tag SelectVersionTag(this Repository repository, Version version)
+    public static Tag? SelectVersionTag(this Repository repository, Version version)
     {
         return repository.Tags.SingleOrDefault(t => t.FriendlyName == $"v{version}");
     }
 
-    public static List<Commit> GetCommitsSinceLastVersion(this Repository repository, Tag versionTag)
+    public static List<Commit> GetCommitsSinceLastVersion(this Repository repository, Tag? versionTag)
     {
         if (versionTag == null)
         {

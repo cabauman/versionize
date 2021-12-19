@@ -83,7 +83,7 @@ public class ChangelogBuilder
         }
     }
 
-    public static string BuildBlock(string header, IChangelogLinkBuilder linkBuilder, IEnumerable<ConventionalCommit> commits)
+    public static string? BuildBlock(string header, IChangelogLinkBuilder linkBuilder, IEnumerable<ConventionalCommit> commits)
     {
         if (!commits.Any())
         {
@@ -115,7 +115,7 @@ public class ChangelogBuilder
 
         if (!string.IsNullOrWhiteSpace(commitLink))
         {
-            sb.Append($" ([{commit.Sha[..7]}]({commitLink}))");
+            sb.Append($" ([{commit.Sha?[..7]}]({commitLink}))");
         }
 
         return sb.ToString();

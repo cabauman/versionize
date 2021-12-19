@@ -147,10 +147,10 @@ public class WorkingCopy
 
             workingCopyCandidate = workingCopyCandidate.Parent;
         }
-        while (workingCopyCandidate.Parent != null);
+        while (workingCopyCandidate?.Parent != null);
 
         Exit($"Directory {workingDirectory} or any parent directory do not contain a git working copy", 3);
 
-        return null;
+        throw new Exception();
     }
 }
